@@ -1,0 +1,81 @@
+<h2>Architektura Offpage — 3 podejścia</h2>
+<p class="subtitle">Jak zorganizować frontend Tauri + edytor + AI inference</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Monolityczny SPA — Rekomendowane</h3>
+      <p>Jeden frontend app (React/Solid) z webview jako edytorem. Chat, WYSIWYG, podgląd i inline prompt — wszystko w jednym oknie z panelami.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Najprostszy do zbudowania i utrzymania</li>
+            <li>Łatwy state management — jeden kontekst</li>
+            <li>Szybka komunikacja między panelami</li>
+            <li>Jeden build pipeline</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Edytor WYSIWYG w tym samym webview co app — potencjalne konflikty CSS</li>
+            <li>Trudniejsza izolacja podglądu strony od UI aplikacji</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Dual Webview — App + iframe Preview</h3>
+      <p>Główny webview to UI aplikacji (chat, panel szablonów, ustawienia). Podgląd strony w izolowanym iframe. WYSIWYG i inline prompt operują na iframe.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Pełna izolacja CSS/JS strony od UI apki</li>
+            <li>Podgląd strony wygląda dokładnie jak na produkcji</li>
+            <li>WYSIWYG naturalnie operuje na rzeczywistym DOM strony</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Komunikacja app↔iframe wymaga postMessage API</li>
+            <li>Nieco więcej złożoności architektonicznej</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Multi-window — Osobne okna Tauri</h3>
+      <p>Tauri pozwala na wiele okien. Jedno okno = edytor/chat, drugie okno = live preview strony. Komunikacja przez Tauri IPC.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Maksymalna izolacja</li>
+            <li>Użytkownik może ustawić preview na drugim monitorze</li>
+            <li>Każde okno ma pełny viewport</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Złożone zarządzanie stanem między oknami</li>
+            <li>UX mniej intuicyjny dla non-technical users</li>
+            <li>Więcej kodu do utrzymania</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

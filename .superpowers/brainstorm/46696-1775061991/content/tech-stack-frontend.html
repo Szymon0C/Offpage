@@ -1,0 +1,64 @@
+<h2>Sekcja 5: Frontend tech stack</h2>
+<p class="subtitle">Frameworki i biblioteki po stronie webview</p>
+
+<div class="mockup">
+  <div class="mockup-header">Frontend Stack</div>
+  <div class="mockup-body" style="padding:24px;min-height:300px;background:#0d0d1a;">
+
+    <div style="display:flex;gap:16px;margin-bottom:20px;">
+      <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:10px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">⚛️</div>
+        <div style="font-size:13px;font-weight:700;color:#61dafb;margin-bottom:4px;">React 19</div>
+        <div style="font-size:11px;color:#888;">UI framework — największy ekosystem, łatwy do rekrutacji, bogata biblioteka komponentów</div>
+      </div>
+      <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:10px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">🔷</div>
+        <div style="font-size:13px;font-weight:700;color:#3178c6;margin-bottom:4px;">TypeScript</div>
+        <div style="font-size:11px;color:#888;">Type safety — szczególnie ważne przy IPC z Rust i postMessage z iframe</div>
+      </div>
+      <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:10px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">⚡</div>
+        <div style="font-size:13px;font-weight:700;color:#646cff;margin-bottom:4px;">Vite</div>
+        <div style="font-size:11px;color:#888;">Bundler — Tauri oficjalnie rekomenduje, szybki HMR, zero config</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;margin-bottom:20px;">
+      <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:10px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">🎨</div>
+        <div style="font-size:13px;font-weight:700;color:#06b6d4;margin-bottom:4px;">Tailwind CSS 4</div>
+        <div style="font-size:11px;color:#888;">Stylowanie UI apki — szybki development, spójny design system. Nie wpływa na iframe (izolacja).</div>
+      </div>
+      <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:10px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">🐻</div>
+        <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:4px;">Zustand</div>
+        <div style="font-size:11px;color:#888;">State management — lekki, prosty, wystarczający. Projekty, chat, UI state.</div>
+      </div>
+      <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:10px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">🛣️</div>
+        <div style="font-size:13px;font-weight:700;color:#f43f5e;margin-bottom:4px;">React Router 7</div>
+        <div style="font-size:11px;color:#888;">Routing — home/projekty/szablony/ustawienia. Prosty, sprawdzony.</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #2a2a4a;padding-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:#888;margin-bottom:8px;">Świadomie pominięte:</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="background:#2a1a1a;border:1px solid #4a2a2a;padding:6px 12px;border-radius:6px;font-size:11px;color:#e17055;">❌ Next.js — server framework, niepotrzebny w Tauri</div>
+        <div style="background:#2a1a1a;border:1px solid #4a2a2a;padding:6px 12px;border-radius:6px;font-size:11px;color:#e17055;">❌ Redux — overkill na ten scope</div>
+        <div style="background:#2a1a1a;border:1px solid #4a2a2a;padding:6px 12px;border-radius:6px;font-size:11px;color:#e17055;">❌ CSS Modules — Tailwind pokrywa potrzeby</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px;">
+  <h3>Podsumowanie</h3>
+  <ul style="font-size:13px;line-height:2;color:#ccc;">
+    <li><strong>React 19 + TypeScript + Vite</strong> — standardowy, dobrze wspierany stack dla Tauri</li>
+    <li><strong>Tailwind CSS 4</strong> — stylowanie UI apki (nie strony użytkownika — ta jest w iframe)</li>
+    <li><strong>Zustand</strong> — lekki state management zamiast ciężkiego Reduxa</li>
+    <li><strong>React Router 7</strong> — nawigacja między widokami apki</li>
+  </ul>
+</div>

@@ -1,0 +1,96 @@
+<h2>Sekcja 2: Architektura komponentów</h2>
+<p class="subtitle">Jak poszczególne warstwy komunikują się ze sobą</p>
+
+<div class="mockup">
+  <div class="mockup-header">Architektura Offpage</div>
+  <div class="mockup-body" style="padding:24px;min-height:500px;background:#0d0d1a;">
+
+    <!-- Tauri Layer -->
+    <div style="border:2px solid #6c5ce7;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;color:#6c5ce7;font-weight:700;letter-spacing:1px;margin-bottom:12px;">TAURI SHELL (Rust backend)</div>
+
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#a29bfe;margin-bottom:6px;">📁 File Manager</div>
+          <div style="font-size:10px;color:#888;">Zapis/odczyt projektów HTML, zarządzanie szablonami, eksport plików</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#a29bfe;margin-bottom:6px;">🤖 AI Sidecar Manager</div>
+          <div style="font-size:10px;color:#888;">Start/stop llama-server, health check, request routing, streaming response</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#a29bfe;margin-bottom:6px;">🚀 Deploy Service</div>
+          <div style="font-size:10px;color:#888;">OAuth tokeny, upload do Netlify/Vercel/GitHub Pages API</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#a29bfe;margin-bottom:6px;">🔍 Hardware Detector</div>
+          <div style="font-size:10px;color:#888;">Detekcja GPU/RAM, wybór kwantyzacji, tier sprzętowy</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#a29bfe;margin-bottom:6px;">💾 Project Store</div>
+          <div style="font-size:10px;color:#888;">SQLite — projekty, historia chatu, ustawienia, deploy config</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #2a2a5a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#a29bfe;margin-bottom:6px;">🔄 Auto Updater</div>
+          <div style="font-size:10px;color:#888;">Tauri updater — aktualizacje app + szablonów</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="text-align:center;color:#6c5ce7;font-size:18px;margin:8px 0;">⇅ Tauri IPC (invoke / events)</div>
+
+    <!-- Frontend Layer -->
+    <div style="border:2px solid #00b894;border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;color:#00b894;font-weight:700;letter-spacing:1px;margin-bottom:12px;">FRONTEND (Webview — React + TypeScript)</div>
+
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;background:#1a1a3a;border:1px solid #1a3a2a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#55efc4;margin-bottom:6px;">💬 Chat Panel</div>
+          <div style="font-size:10px;color:#888;">Rozmowa z AI, history, streaming tokens, prompt templates</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #1a3a2a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#55efc4;margin-bottom:6px;">🖼️ Preview Manager</div>
+          <div style="font-size:10px;color:#888;">iframe control, postMessage bridge, responsive resize</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #1a3a2a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#55efc4;margin-bottom:6px;">✏️ WYSIWYG Engine</div>
+          <div style="font-size:10px;color:#888;">contentEditable overlay w iframe, text/color/image editing</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="text-align:center;color:#00b894;font-size:18px;margin:8px 0;">⇅ postMessage API</div>
+
+    <!-- iframe layer -->
+    <div style="border:2px solid #fdcb6e;border-radius:12px;padding:16px;">
+      <div style="font-size:11px;color:#fdcb6e;font-weight:700;letter-spacing:1px;margin-bottom:12px;">PREVIEW IFRAME (izolowany sandbox)</div>
+
+      <div style="display:flex;gap:12px;">
+        <div style="flex:1;background:#1a1a3a;border:1px solid #3a3a1a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#ffeaa7;margin-bottom:6px;">📄 User's HTML</div>
+          <div style="font-size:10px;color:#888;">Wygenerowana strona — pełna izolacja CSS/JS od app UI</div>
+        </div>
+        <div style="flex:1;background:#1a1a3a;border:1px solid #3a3a1a;border-radius:8px;padding:12px;">
+          <div style="font-size:12px;font-weight:600;color:#ffeaa7;margin-bottom:6px;">🎯 Offpage Helper Script</div>
+          <div style="font-size:10px;color:#888;">Wstrzyknięty skrypt: section detection, click handling, edit overlays, selection highlighting</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:24px;">
+  <h3>Kluczowe przepływy danych</h3>
+  <ul style="font-size:13px;line-height:2;color:#ccc;">
+    <li><strong>Generowanie:</strong> User prompt → Chat Panel → Tauri IPC → AI Sidecar (llama-server HTTP) → streaming HTML → Preview iframe</li>
+    <li><strong>Inline edit:</strong> Klik na sekcję w iframe → postMessage → Chat Panel (auto-prompt z kontekstem sekcji) → AI → zaktualizowany HTML</li>
+    <li><strong>WYSIWYG:</strong> Klik na tekst w iframe → contentEditable aktywny → bezpośrednia edycja → postMessage z nowym HTML do app</li>
+    <li><strong>Deploy:</strong> Aktualny HTML → Tauri → Deploy Service → Netlify/Vercel/GH Pages API</li>
+  </ul>
+</div>
