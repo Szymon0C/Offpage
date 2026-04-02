@@ -44,6 +44,12 @@ export function HomePage() {
         <p className="text-[var(--color-text-secondary)] text-sm">Loading...</p>
       )}
 
+      {!loading && projects.length === 0 && (
+        <p className="text-[var(--color-text-secondary)] text-sm">
+          No projects yet. Create one to get started!
+        </p>
+      )}
+
       {!loading && projects.length > 0 && (
         <div className="w-full max-w-lg">
           <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
