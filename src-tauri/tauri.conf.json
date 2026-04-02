@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build && bash scripts/setup-sidecar.sh",
     "frontendDist": "../dist"
   },
   "app": {
@@ -32,6 +32,7 @@
   },
   "bundle": {
     "active": true,
+    "externalBin": ["binaries/llama-server"],
     "targets": "all",
     "icon": [
       "icons/32x32.png",
