@@ -15,6 +15,7 @@ export function ChatPanel() {
   const currentProject = useProjectStore((s) => s.currentProject);
   const { messages, streaming, streamBuffer, loadMessages, addMessage } =
     useChatStore();
+  const createSnapshot = useProjectStore((s) => s.createSnapshot);
   const sidecarStatus = useAiStore((s) => s.sidecarStatus);
   const { generate } = useAiStream();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,6 +36,7 @@ export function ChatPanel() {
     await addMessage(currentProject.id, 'user', text, 'chat');
 
     const hasHtml = currentProject.html.length > 0;
+    let result: string | null = null;
 
     if (hasHtml) {
       const chatHistory = messages
@@ -42,16 +44,24 @@ export function ChatPanel() {
         .slice(-6)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      await generate(
+      result = await generate(
         currentProject.id,
         SYSTEM_PROMPTS.editFull,
         buildEditMessages(currentProject.html, chatHistory, text)
       );
     } else {
-      await generate(
+      result = await generate(
         currentProject.id,
         SYSTEM_PROMPTS.generate,
         buildGenerateMessages(text, currentProject.site_type)
+      );
+    }
+
+    if (result) {
+      await createSnapshot(
+        currentProject.id,
+        result,
+        hasHtml ? `Chat edit: ${text.slice(0, 50)}` : `Generated: ${text.slice(0, 50)}`
       );
     }
   };
