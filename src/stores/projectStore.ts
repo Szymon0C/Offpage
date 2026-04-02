@@ -101,14 +101,22 @@ export const useProjectStore = create<ProjectState>((set, _get) => ({
   createSnapshot: async (projectId: string, html: string, description: string) => {
     const db = await getDatabase();
     const id = crypto.randomUUID();
-    const rows = await db.select<Array<{ max_version: number | null }>>(
-      'SELECT MAX(version) as max_version FROM snapshots WHERE project_id = ?',
-      [projectId]
-    );
-    const nextVersion = (rows[0]?.max_version ?? 0) + 1;
-    await db.execute(
-      'INSERT INTO snapshots (id, project_id, html, description, version) VALUES (?, ?, ?, ?, ?)',
-      [id, projectId, html, description, nextVersion]
-    );
+
+    await db.execute('BEGIN TRANSACTION');
+    try {
+      const rows = await db.select<Array<{ max_version: number | null }>>(
+        'SELECT MAX(version) as max_version FROM snapshots WHERE project_id = ?',
+        [projectId]
+      );
+      const nextVersion = (rows[0]?.max_version ?? 0) + 1;
+      await db.execute(
+        'INSERT INTO snapshots (id, project_id, html, description, version) VALUES (?, ?, ?, ?, ?)',
+        [id, projectId, html, description, nextVersion]
+      );
+      await db.execute('COMMIT');
+    } catch (error) {
+      await db.execute('ROLLBACK');
+      throw error;
+    }
   },
 }));

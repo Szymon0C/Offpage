@@ -47,10 +47,9 @@ export function useAiStream() {
 
       try {
         const fullHtml = await invoke<string>('stream_generate', {
-          port: sidecarPort,
-          systemPrompt,
           messages,
-          maxTokens: maxTokens ?? null,
+          system_prompt: systemPrompt,
+          max_tokens: maxTokens ?? null,
         });
 
         await finalizeStream(projectId);
@@ -92,10 +91,9 @@ export function useAiStream() {
 
       try {
         const newSectionHtml = await invoke<string>('stream_generate', {
-          port: sidecarPort,
-          systemPrompt: SYSTEM_PROMPTS.editSection,
           messages: buildSectionEditMessages(sectionHtml, userPrompt),
-          maxTokens: null,
+          system_prompt: SYSTEM_PROMPTS.editSection,
+          max_tokens: null,
         });
 
         await finalizeStream(projectId);

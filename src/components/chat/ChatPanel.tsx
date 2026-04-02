@@ -35,7 +35,7 @@ export function ChatPanel() {
 
     await addMessage(currentProject.id, 'user', text, 'chat');
 
-    const hasHtml = currentProject.html.length > 0;
+    const hasHtml = !!currentProject.html && currentProject.html.length > 0;
     let result: string | null = null;
 
     if (hasHtml) {

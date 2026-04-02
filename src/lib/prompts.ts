@@ -59,7 +59,9 @@ export function buildEditMessages(
       content: 'I see the current page. What would you like me to change?',
     },
   ];
-  const recentHistory = chatHistory.slice(-6);
+  const recentHistory = chatHistory
+    .slice(-6)
+    .filter((msg) => msg.content !== userPrompt);
   messages.push(...recentHistory);
   messages.push({ role: 'user', content: userPrompt });
   return messages;

@@ -5,7 +5,7 @@ LLAMA_VERSION="b5460"
 BINARIES_DIR="src-tauri/binaries"
 mkdir -p "$BINARIES_DIR"
 
-TARGET=$(rustc --print host-triple 2>/dev/null || echo "unknown")
+TARGET=$(rustc --print host-tuple 2>/dev/null || rustc -Vv 2>/dev/null | grep 'host:' | cut -d' ' -f2 || echo "unknown")
 
 echo "Detected target: $TARGET"
 echo "Setting up llama-server for Offpage..."

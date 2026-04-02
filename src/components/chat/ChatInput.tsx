@@ -21,6 +21,7 @@ export function ChatInput({
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.nativeEvent?.isComposing) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -37,11 +38,12 @@ export function ChatInput({
           disabled={disabled}
           placeholder={placeholder}
           rows={1}
-          className="flex-1 bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] text-xs p-2 rounded-lg resize-none outline-none placeholder:text-[var(--color-text-secondary)] disabled:opacity-50"
+          className="flex-1 bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] text-xs p-2 rounded-lg resize-none placeholder:text-[var(--color-text-secondary)] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:outline-none"
         />
         <button
           onClick={handleSend}
           disabled={disabled || !value.trim()}
+          aria-label="Send"
           className="bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 rounded-lg text-xs transition-colors"
         >
           ↑
