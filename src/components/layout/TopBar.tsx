@@ -19,10 +19,20 @@ export function TopBar() {
       <div className="flex gap-2">
         {currentProject && (
           <>
-            <button className="bg-[var(--color-bg-elevated)] px-2.5 py-1 rounded-md text-xs text-[var(--color-text-secondary)] hover:text-white transition-colors">
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              className="bg-[var(--color-bg-elevated)] px-2.5 py-1 rounded-md text-xs text-[var(--color-text-secondary)] opacity-60 cursor-not-allowed"
+            >
               📱 Mobile
             </button>
-            <button className="bg-[var(--color-accent)] px-2.5 py-1 rounded-md text-xs text-white hover:bg-[var(--color-accent-hover)] transition-colors">
+            <button
+              type="button"
+              disabled
+              aria-disabled="true"
+              className="bg-[var(--color-accent)] px-2.5 py-1 rounded-md text-xs text-white opacity-60 cursor-not-allowed"
+            >
               🚀 Deploy
             </button>
           </>

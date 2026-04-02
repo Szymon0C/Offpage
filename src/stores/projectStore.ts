@@ -7,6 +7,7 @@ interface ProjectState {
   currentProject: Project | null;
   loading: boolean;
   loadProjects: () => Promise<void>;
+  loadProjectById: (id: string) => Promise<void>;
   createProject: (name: string, siteType: SiteType) => Promise<Project>;
   setCurrentProject: (project: Project | null) => void;
   updateProjectHtml: (id: string, html: string) => Promise<void>;
@@ -20,11 +21,26 @@ export const useProjectStore = create<ProjectState>((set, _get) => ({
 
   loadProjects: async () => {
     set({ loading: true });
+    try {
+      const db = await getDatabase();
+      const projects = await db.select<Project[]>(
+        'SELECT * FROM projects ORDER BY updated_at DESC'
+      );
+      set({ projects, loading: false });
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+      set({ loading: false });
+    }
+  },
+
+  loadProjectById: async (id: string) => {
+    set({ loading: true });
     const db = await getDatabase();
-    const projects = await db.select<Project[]>(
-      'SELECT * FROM projects ORDER BY updated_at DESC'
+    const rows = await db.select<Project[]>(
+      'SELECT * FROM projects WHERE id = ?',
+      [id]
     );
-    set({ projects, loading: false });
+    set({ currentProject: rows[0] ?? null, loading: false });
   },
 
   createProject: async (name: string, siteType: SiteType) => {

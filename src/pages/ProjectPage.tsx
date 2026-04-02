@@ -1,7 +1,17 @@
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useProjectStore } from '../stores/projectStore';
 
 export function ProjectPage() {
+  const { id } = useParams<{ id: string }>();
   const currentProject = useProjectStore((s) => s.currentProject);
+  const loadProjectById = useProjectStore((s) => s.loadProjectById);
+
+  useEffect(() => {
+    if (id && !currentProject) {
+      loadProjectById(id);
+    }
+  }, [id, currentProject, loadProjectById]);
 
   return (
     <div className="h-full flex">

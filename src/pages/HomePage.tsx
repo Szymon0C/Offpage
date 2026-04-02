@@ -8,13 +8,17 @@ export function HomePage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadProjects();
+    loadProjects().catch((error) => console.error('Failed to load projects:', error));
   }, [loadProjects]);
 
   const handleNewProject = async () => {
-    const project = await createProject('Untitled Site', 'landing');
-    setCurrentProject(project);
-    navigate(`/project/${project.id}`);
+    try {
+      const project = await createProject('Untitled Site', 'landing');
+      setCurrentProject(project);
+      navigate(`/project/${project.id}`);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
   };
 
   const handleOpenProject = (project: (typeof projects)[0]) => {
