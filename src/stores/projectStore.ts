@@ -12,6 +12,7 @@ interface ProjectState {
   setCurrentProject: (project: Project | null) => void;
   updateProjectHtml: (id: string, html: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  createSnapshot: (projectId: string, html: string, description: string) => Promise<void>;
 }
 
 export const useProjectStore = create<ProjectState>((set, _get) => ({
@@ -95,5 +96,19 @@ export const useProjectStore = create<ProjectState>((set, _get) => ({
       currentProject:
         state.currentProject?.id === id ? null : state.currentProject,
     }));
+  },
+
+  createSnapshot: async (projectId: string, html: string, description: string) => {
+    const db = await getDatabase();
+    const id = crypto.randomUUID();
+    const rows = await db.select<Array<{ max_version: number | null }>>(
+      'SELECT MAX(version) as max_version FROM snapshots WHERE project_id = ?',
+      [projectId]
+    );
+    const nextVersion = (rows[0]?.max_version ?? 0) + 1;
+    await db.execute(
+      'INSERT INTO snapshots (id, project_id, html, description, version) VALUES (?, ?, ?, ?, ?)',
+      [id, projectId, html, description, nextVersion]
+    );
   },
 }));
