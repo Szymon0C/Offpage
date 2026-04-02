@@ -4,6 +4,8 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { useChatStore } from '../stores/chatStore';
 import { useAiStore } from '../stores/aiStore';
 import { useProjectStore } from '../stores/projectStore';
+import { replaceSectionInHtml, ensureSectionId } from '../lib/htmlSections';
+import { SYSTEM_PROMPTS, buildSectionEditMessages } from '../lib/prompts';
 
 interface AiChunk {
   token: string;
@@ -67,5 +69,53 @@ export function useAiStream() {
     [sidecarPort, sidecarStatus, setStreaming, appendToStream, finalizeStream, updateProjectHtml]
   );
 
-  return { generate };
+  const generateSection = useCallback(
+    async (
+      projectId: string,
+      sectionId: string,
+      sectionHtml: string,
+      userPrompt: string,
+      fullHtml: string
+    ): Promise<string | null> => {
+      if (sidecarStatus !== 'running') {
+        console.error('Sidecar not running');
+        return null;
+      }
+
+      setStreaming(true);
+
+      unlistenRef.current = await listen<AiChunk>('ai-chunk', (event) => {
+        if (!event.payload.done) {
+          appendToStream(event.payload.token);
+        }
+      });
+
+      try {
+        const newSectionHtml = await invoke<string>('stream_generate', {
+          port: sidecarPort,
+          systemPrompt: SYSTEM_PROMPTS.editSection,
+          messages: buildSectionEditMessages(sectionHtml, userPrompt),
+          maxTokens: null,
+        });
+
+        await finalizeStream(projectId);
+
+        const taggedSection = ensureSectionId(newSectionHtml, sectionId);
+        const updatedHtml = replaceSectionInHtml(fullHtml, sectionId, taggedSection);
+        await updateProjectHtml(projectId, updatedHtml);
+
+        return updatedHtml;
+      } catch (error) {
+        console.error('Section edit failed:', error);
+        setStreaming(false);
+        return null;
+      } finally {
+        unlistenRef.current?.();
+        unlistenRef.current = null;
+      }
+    },
+    [sidecarPort, sidecarStatus, setStreaming, appendToStream, finalizeStream, updateProjectHtml]
+  );
+
+  return { generate, generateSection };
 }
