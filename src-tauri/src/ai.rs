@@ -31,6 +31,8 @@ pub async fn stream_generate<R: Runtime>(
     app: AppHandle<R>,
     state: tauri::State<'_, SidecarState>,
     messages: Vec<serde_json::Value>,
+    system_prompt: Option<String>,
+    max_tokens: Option<u32>,
 ) -> Result<String, String> {
     let port = {
         let port_lock = state.port.lock().map_err(|e| e.to_string())?;
@@ -39,10 +41,22 @@ pub async fn stream_generate<R: Runtime>(
 
     let url = format!("http://127.0.0.1:{}/v1/chat/completions", port);
 
-    let body = serde_json::json!({
-        "messages": messages,
+    let mut final_messages = Vec::new();
+    if let Some(sys_prompt) = system_prompt {
+        final_messages.push(serde_json::json!({
+            "role": "system",
+            "content": sys_prompt
+        }));
+    }
+    final_messages.extend(messages);
+
+    let mut body = serde_json::json!({
+        "messages": final_messages,
         "stream": true,
     });
+    if let Some(tokens) = max_tokens {
+        body["max_tokens"] = serde_json::json!(tokens);
+    }
 
     let client = reqwest::Client::new();
     let response = client

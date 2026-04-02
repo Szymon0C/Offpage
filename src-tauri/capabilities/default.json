@@ -8,7 +8,9 @@
     "sql:default",
     "sql:allow-execute",
     "sql:allow-select",
-    "shell:allow-spawn",
-    "shell:allow-execute"
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [{ "name": "llama-server" }]
+    }
   ]
 }

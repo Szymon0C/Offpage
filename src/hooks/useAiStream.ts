@@ -45,10 +45,9 @@ export function useAiStream() {
 
       try {
         const fullHtml = await invoke<string>('stream_generate', {
-          port: sidecarPort,
-          systemPrompt,
           messages,
-          maxTokens: maxTokens ?? null,
+          system_prompt: systemPrompt,
+          max_tokens: maxTokens ?? null,
         });
 
         await finalizeStream(projectId);
