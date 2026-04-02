@@ -32,6 +32,7 @@
   },
   "bundle": {
     "active": true,
+    "externalBin": ["binaries/llama-server"],
     "targets": "all",
     "icon": [
       "icons/32x32.png",
