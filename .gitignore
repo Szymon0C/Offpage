@@ -23,3 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 .superpowers/
+
+# Database
+*.db
+*.db-journal
+
+# OS files
+Thumbs.db
