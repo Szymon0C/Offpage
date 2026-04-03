@@ -4,7 +4,7 @@ export interface Project {
   html: string;
   template_id: string | null;
   site_type: SiteType;
-  deploy_config: DeployConfig | null;
+  deploy_config: string | null;
   created_at: string;
   updated_at: string;
 }

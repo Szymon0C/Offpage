@@ -16,6 +16,8 @@ export function PreviewFrame() {
   const currentProject = useProjectStore((s) => s.currentProject);
   const updateProjectHtml = useProjectStore((s) => s.updateProjectHtml);
   const { editMode, viewport, selectSection } = useEditorStore();
+  const projectRef = useRef(currentProject);
+  projectRef.current = currentProject;
 
   // Send edit mode changes to iframe
   useEffect(() => {
@@ -43,14 +45,14 @@ export function PreviewFrame() {
           break;
 
         case 'offpage:wysiwyg-done':
-          if (currentProject) {
+          if (projectRef.current) {
             const newSectionHtml = ensureSectionId(data.payload.outerHtml, data.payload.id);
             const updatedHtml = replaceSectionInHtml(
-              currentProject.html,
+              projectRef.current.html,
               data.payload.id,
               newSectionHtml
             );
-            updateProjectHtml(currentProject.id, updatedHtml);
+            updateProjectHtml(projectRef.current.id, updatedHtml);
           }
           break;
 
@@ -65,7 +67,7 @@ export function PreviewFrame() {
           break;
       }
     },
-    [editMode, currentProject, selectSection, updateProjectHtml]
+    [editMode, selectSection, updateProjectHtml]
   );
 
   useEffect(() => {

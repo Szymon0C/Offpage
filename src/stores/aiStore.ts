@@ -101,6 +101,7 @@ export const useAiStore = create<AiState>((set, get) => ({
 
     let unlistenProgress: (() => void) | null = null;
     let unlistenComplete: (() => void) | null = null;
+    let completeFired = false;
 
     try {
       unlistenProgress = await listen<DownloadProgress>('download-progress', (event) => {
@@ -108,16 +109,27 @@ export const useAiStore = create<AiState>((set, get) => ({
       });
 
       unlistenComplete = await listen<string>('download-complete', async (event) => {
+        completeFired = true;
         set({ isDownloading: false, downloadProgress: null });
         unlistenProgress?.();
         unlistenComplete?.();
 
-        // Auto-start sidecar with downloaded model
         const modelPath = await get().getModelPath(event.payload);
         await get().startSidecar(modelPath);
       });
 
       await invoke('download_model', { modelUrl, filename });
+
+      // If invoke resolved without download-complete event (model already existed),
+      // clean up listeners and auto-start sidecar directly
+      if (!completeFired) {
+        unlistenProgress?.();
+        unlistenComplete?.();
+        set({ isDownloading: false, downloadProgress: null });
+
+        const modelPath = await get().getModelPath(filename);
+        await get().startSidecar(modelPath);
+      }
     } catch (error) {
       unlistenProgress?.();
       unlistenComplete?.();

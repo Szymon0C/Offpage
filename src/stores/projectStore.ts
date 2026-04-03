@@ -11,6 +11,7 @@ interface ProjectState {
   createProject: (name: string, siteType: SiteType) => Promise<Project>;
   setCurrentProject: (project: Project | null) => void;
   updateProjectHtml: (id: string, html: string) => Promise<void>;
+  updateDeployConfig: (id: string, deployConfig: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   createSnapshot: (projectId: string, html: string, description: string) => Promise<void>;
 }
@@ -36,12 +37,17 @@ export const useProjectStore = create<ProjectState>((set, _get) => ({
 
   loadProjectById: async (id: string) => {
     set({ loading: true });
-    const db = await getDatabase();
-    const rows = await db.select<Project[]>(
-      'SELECT * FROM projects WHERE id = ?',
-      [id]
-    );
-    set({ currentProject: rows[0] ?? null, loading: false });
+    try {
+      const db = await getDatabase();
+      const rows = await db.select<Project[]>(
+        'SELECT * FROM projects WHERE id = ?',
+        [id]
+      );
+      set({ currentProject: rows[0] ?? null, loading: false });
+    } catch (error) {
+      console.error('Failed to load project:', error);
+      set({ loading: false });
+    }
   },
 
   createProject: async (name: string, siteType: SiteType) => {
@@ -84,6 +90,20 @@ export const useProjectStore = create<ProjectState>((set, _get) => ({
       currentProject:
         state.currentProject?.id === id
           ? { ...state.currentProject, html, updated_at: now }
+          : state.currentProject,
+    }));
+  },
+
+  updateDeployConfig: async (id: string, deployConfig: string) => {
+    const db = await getDatabase();
+    await db.execute(
+      'UPDATE projects SET deploy_config = ? WHERE id = ?',
+      [deployConfig, id]
+    );
+    set((state) => ({
+      currentProject:
+        state.currentProject?.id === id
+          ? { ...state.currentProject, deploy_config: deployConfig }
           : state.currentProject,
     }));
   },
