@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useDeployStore } from '../../stores/deployStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { PROVIDERS, getProvider } from '../../lib/deployProviders';
+import { getDatabase } from '../../db/database';
 import type { DeployProvider } from '../../lib/deployProviders';
 
 interface DeployResult {
@@ -88,7 +89,7 @@ export function DeployModal() {
       }
 
       // Save deploy config to project
-      const db = await (await import('../../db/database')).getDatabase();
+      const db = await getDatabase();
       const deployConfig = JSON.stringify({
         provider: result.provider,
         site_id: result.site_id,
