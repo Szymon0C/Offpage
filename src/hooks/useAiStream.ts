@@ -39,17 +39,18 @@ export function useAiStream() {
 
       setStreaming(true);
 
-      unlistenRef.current = await listen<AiChunk>('ai-chunk', (event) => {
+      const unlisten = await listen<AiChunk>('ai-chunk', (event) => {
         if (!event.payload.done) {
           appendToStream(event.payload.token);
         }
       });
+      unlistenRef.current = unlisten;
 
       try {
         const fullHtml = await invoke<string>('stream_generate', {
           messages,
-          system_prompt: systemPrompt,
-          max_tokens: maxTokens ?? null,
+          systemPrompt,
+          maxTokens: maxTokens ?? null,
         });
 
         await finalizeStream(projectId);
@@ -61,8 +62,10 @@ export function useAiStream() {
         setStreaming(false);
         return null;
       } finally {
-        unlistenRef.current?.();
-        unlistenRef.current = null;
+        unlisten();
+        if (unlistenRef.current === unlisten) {
+          unlistenRef.current = null;
+        }
       }
     },
     [sidecarPort, sidecarStatus, setStreaming, appendToStream, finalizeStream, updateProjectHtml]
@@ -83,17 +86,18 @@ export function useAiStream() {
 
       setStreaming(true);
 
-      unlistenRef.current = await listen<AiChunk>('ai-chunk', (event) => {
+      const unlisten = await listen<AiChunk>('ai-chunk', (event) => {
         if (!event.payload.done) {
           appendToStream(event.payload.token);
         }
       });
+      unlistenRef.current = unlisten;
 
       try {
         const newSectionHtml = await invoke<string>('stream_generate', {
           messages: buildSectionEditMessages(sectionHtml, userPrompt),
-          system_prompt: SYSTEM_PROMPTS.editSection,
-          max_tokens: null,
+          systemPrompt: SYSTEM_PROMPTS.editSection,
+          maxTokens: null,
         });
 
         await finalizeStream(projectId);
@@ -108,8 +112,10 @@ export function useAiStream() {
         setStreaming(false);
         return null;
       } finally {
-        unlistenRef.current?.();
-        unlistenRef.current = null;
+        unlisten();
+        if (unlistenRef.current === unlisten) {
+          unlistenRef.current = null;
+        }
       }
     },
     [sidecarPort, sidecarStatus, setStreaming, appendToStream, finalizeStream, updateProjectHtml]

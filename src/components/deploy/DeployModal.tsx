@@ -3,7 +3,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { useDeployStore } from '../../stores/deployStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { PROVIDERS, getProvider } from '../../lib/deployProviders';
-import { getDatabase } from '../../db/database';
 import type { DeployProvider } from '../../lib/deployProviders';
 
 interface DeployResult {
@@ -16,6 +15,7 @@ export function DeployModal() {
   const { status, error, deployUrl, modalOpen, closeModal, setStatus, setDeployUrl, loadToken, saveToken, reset } =
     useDeployStore();
   const currentProject = useProjectStore((s) => s.currentProject);
+  const updateDeployConfig = useProjectStore((s) => s.updateDeployConfig);
   const [selectedProvider, setSelectedProvider] = useState<DeployProvider | null>(null);
   const [tokenInput, setTokenInput] = useState('');
   const [needsToken, setNeedsToken] = useState(false);
@@ -53,12 +53,12 @@ export function DeployModal() {
     setNeedsToken(false);
 
     try {
-      const existingConfig: { provider: string; site_id: string; url: string } | null =
-        currentProject.deploy_config
-          ? (typeof currentProject.deploy_config === 'string'
-            ? JSON.parse(currentProject.deploy_config as string)
-            : currentProject.deploy_config)
-          : null;
+      let existingConfig: { provider: string; site_id: string; url: string } | null = null;
+      try {
+        if (currentProject.deploy_config) {
+          existingConfig = JSON.parse(currentProject.deploy_config);
+        }
+      } catch { /* invalid JSON, treat as no config */ }
       const existingSiteId =
         existingConfig?.provider === provider ? existingConfig.site_id : undefined;
 
@@ -88,17 +88,13 @@ export function DeployModal() {
           break;
       }
 
-      // Save deploy config to project
-      const db = await getDatabase();
+      // Save deploy config to project (updates both DB and store)
       const deployConfig = JSON.stringify({
         provider: result.provider,
         site_id: result.site_id,
         url: result.url,
       });
-      await db.execute(
-        'UPDATE projects SET deploy_config = ? WHERE id = ?',
-        [deployConfig, currentProject.id]
-      );
+      await updateDeployConfig(currentProject.id, deployConfig);
 
       setDeployUrl(result.url);
       setStatus('success');

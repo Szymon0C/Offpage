@@ -16,17 +16,21 @@ export function ProjectPage() {
   const currentProject = useProjectStore((s) => s.currentProject);
   const loadProjectById = useProjectStore((s) => s.loadProjectById);
   const createSnapshot = useProjectStore((s) => s.createSnapshot);
-  const { addMessage } = useChatStore();
+  const { addMessage, clearMessages } = useChatStore();
   const streaming = useChatStore((s) => s.streaming);
-  const clearSelection = useEditorStore((s) => s.clearSelection);
+  const { clearSelection } = useEditorStore();
   const { generate, generateSection } = useAiStream();
   const initialPromptSent = useRef(false);
 
   useEffect(() => {
     if (id) {
+      // Reset state when switching projects
+      initialPromptSent.current = false;
+      clearMessages();
+      clearSelection();
       loadProjectById(id);
     }
-  }, [id, loadProjectById]);
+  }, [id, loadProjectById, clearMessages, clearSelection]);
 
   // Auto-send template customization prompt from ?prompt= query param
   useEffect(() => {
