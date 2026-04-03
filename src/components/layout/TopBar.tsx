@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../../stores/projectStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useDeployStore } from '../../stores/deployStore';
@@ -10,6 +11,7 @@ const VIEWPORT_OPTIONS: Array<{ value: ViewportSize; label: string }> = [
 ];
 
 export function TopBar() {
+  const navigate = useNavigate();
   const currentProject = useProjectStore((s) => s.currentProject);
   const { viewport, setViewport } = useEditorStore();
   const openModal = useDeployStore((s) => s.openModal);
@@ -18,7 +20,9 @@ export function TopBar() {
   return (
     <header className="h-10 bg-[var(--color-bg-tertiary)] border-b border-[var(--color-border)] flex items-center justify-between px-4">
       <div className="flex items-center gap-3">
-        <span className="font-bold text-sm text-white">Offpage</span>
+        <button type="button" onClick={() => navigate('/')} className="font-bold text-sm text-white hover:text-[var(--color-accent)] transition-colors">
+          Offpage
+        </button>
         {currentProject && (
           <>
             <span className="text-[var(--color-text-secondary)] opacity-50">|</span>
