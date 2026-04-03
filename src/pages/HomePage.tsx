@@ -33,12 +33,20 @@ export function HomePage() {
         Generate websites with AI — entirely on your device.
       </p>
 
-      <button
-        onClick={handleNewProject}
-        className="bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors mb-8"
-      >
-        + New Project
-      </button>
+      <div className="flex gap-3 mb-8">
+        <button
+          onClick={handleNewProject}
+          className="bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors"
+        >
+          + New Project
+        </button>
+        <button
+          onClick={() => navigate('/templates')}
+          className="bg-[var(--color-bg-elevated)] text-[var(--color-text-primary)] px-6 py-3 rounded-lg text-sm font-medium hover:bg-[var(--color-bg-primary)] transition-colors border border-[var(--color-border)]"
+        >
+          From Template
+        </button>
+      </div>
 
       {loading && (
         <p className="text-[var(--color-text-secondary)] text-sm">Loading...</p>

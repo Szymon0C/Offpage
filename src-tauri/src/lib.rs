@@ -1,5 +1,7 @@
 mod ai;
+mod deploy;
 mod hardware;
+mod models;
 mod sidecar;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -7,6 +9,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::default().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(sidecar::SidecarState::default())
         .invoke_handler(tauri::generate_handler![
             sidecar::start_sidecar,
@@ -14,6 +17,14 @@ pub fn run() {
             sidecar::sidecar_status,
             ai::stream_generate,
             hardware::get_hardware_info,
+            models::download_model,
+            models::list_available_models,
+            models::check_model_exists,
+            models::get_model_path,
+            deploy::deploy_netlify,
+            deploy::deploy_vercel,
+            deploy::deploy_github_pages,
+            deploy::export_html,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
