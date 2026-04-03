@@ -80,7 +80,7 @@ export function PreviewFrame() {
 
   return (
     <div className="flex-1 flex items-center justify-center bg-[var(--color-bg-primary)] overflow-auto p-4">
-      {currentProject?.html ? (
+      {currentProject?.html && currentProject.html.trim() ? (
         <iframe
           ref={iframeRef}
           srcDoc={srcDoc}
@@ -94,11 +94,19 @@ export function PreviewFrame() {
           }}
         />
       ) : (
-        <p className="text-[var(--color-text-secondary)] text-sm">
-          {currentProject
-            ? 'Start by describing your website in the chat'
-            : 'No project selected'}
-        </p>
+        <div className="text-center space-y-4">
+          <div className="text-4xl">🎨</div>
+          <p className="text-[var(--color-text-secondary)] text-lg">
+            {currentProject
+              ? 'Start by describing your website in the chat'
+              : 'No project selected'}
+          </p>
+          {currentProject && (
+            <p className="text-[var(--color-text-secondary)] text-sm">
+              Tell the AI what kind of website you want to create!
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

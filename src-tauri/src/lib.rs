@@ -1,5 +1,6 @@
 mod ai;
 mod hardware;
+mod models;
 mod sidecar;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -14,6 +15,10 @@ pub fn run() {
             sidecar::sidecar_status,
             ai::stream_generate,
             hardware::get_hardware_info,
+            models::download_model,
+            models::list_available_models,
+            models::check_model_exists,
+            models::get_model_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

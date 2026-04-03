@@ -1,12 +1,30 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 interface HardwareInfo {
   total_ram_gb: number;
   cpu_cores: number;
-  gpu_type: { Metal: null } | { Nvidia: { vram_gb: number } } | { Cpu: null };
+  gpu_type:
+    | { Metal: null }
+    | { Nvidia: { vram_gb: number } }
+    | { Cpu: null }
+    | string;
   tier: 'Minimum' | 'Recommended' | 'Optimal';
   recommended_quantization: string;
+}
+
+interface ModelInfo {
+  name: string;
+  size: string;
+  url: string;
+  filename: string;
+}
+
+interface DownloadProgress {
+  downloaded: number;
+  total: number;
+  percentage: number;
 }
 
 type SidecarStatus = 'stopped' | 'starting' | 'running' | 'error';
@@ -16,16 +34,26 @@ interface AiState {
   sidecarPort: number;
   hardwareInfo: HardwareInfo | null;
   error: string | null;
+  availableModels: ModelInfo[];
+  downloadProgress: DownloadProgress | null;
+  isDownloading: boolean;
   detectHardware: () => Promise<void>;
   startSidecar: (modelPath: string) => Promise<void>;
   stopSidecar: () => Promise<void>;
+  listAvailableModels: () => Promise<void>;
+  downloadModel: (modelUrl: string, filename: string) => Promise<void>;
+  checkModelExists: (filename: string) => Promise<boolean>;
+  getModelPath: (filename: string) => Promise<string>;
 }
 
-export const useAiStore = create<AiState>((set) => ({
+export const useAiStore = create<AiState>((set, get) => ({
   sidecarStatus: 'stopped',
   sidecarPort: 8080,
   hardwareInfo: null,
   error: null,
+  availableModels: [],
+  downloadProgress: null,
+  isDownloading: false,
 
   detectHardware: async () => {
     try {
@@ -56,6 +84,63 @@ export const useAiStore = create<AiState>((set) => ({
       set({ sidecarStatus: 'stopped' });
     } catch (error) {
       console.error('Failed to stop sidecar:', error);
+    }
+  },
+
+  listAvailableModels: async () => {
+    try {
+      const models = await invoke<ModelInfo[]>('list_available_models');
+      set({ availableModels: models });
+    } catch (error) {
+      console.error('Failed to list models:', error);
+    }
+  },
+
+  downloadModel: async (modelUrl: string, filename: string) => {
+    set({ isDownloading: true, downloadProgress: null, error: null });
+
+    let unlistenProgress: (() => void) | null = null;
+    let unlistenComplete: (() => void) | null = null;
+
+    try {
+      unlistenProgress = await listen<DownloadProgress>('download-progress', (event) => {
+        set({ downloadProgress: event.payload });
+      });
+
+      unlistenComplete = await listen<string>('download-complete', async (event) => {
+        set({ isDownloading: false, downloadProgress: null });
+        unlistenProgress?.();
+        unlistenComplete?.();
+
+        // Auto-start sidecar with downloaded model
+        const modelPath = await get().getModelPath(event.payload);
+        await get().startSidecar(modelPath);
+      });
+
+      await invoke('download_model', { modelUrl, filename });
+    } catch (error) {
+      unlistenProgress?.();
+      unlistenComplete?.();
+      const msg = error instanceof Error ? error.message : String(error);
+      set({ isDownloading: false, downloadProgress: null, error: msg });
+    }
+  },
+
+  checkModelExists: async (filename: string) => {
+    try {
+      return await invoke<boolean>('check_model_exists', { filename });
+    } catch (error) {
+      console.error('Failed to check model existence:', error);
+      return false;
+    }
+  },
+
+  getModelPath: async (filename: string) => {
+    try {
+      return await invoke<string>('get_model_path', { filename });
+    } catch (error) {
+      console.error('Failed to get model path:', error);
+      throw error;
     }
   },
 }));

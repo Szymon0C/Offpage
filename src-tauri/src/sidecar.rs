@@ -121,21 +121,32 @@ pub async fn start_sidecar<R: Runtime>(
         if start.elapsed() > timeout {
             // Cleanup: kill the child process on timeout
             let mut child_lock = state.child.lock().map_err(|e| e.to_string())?;
-            if let Some(mut child) = child_lock.take() {
-                let _ = child.kill();
+            if let Some(child) = child_lock.take() {
                 tauri::async_runtime::spawn(async move {
-                    let _ = child.wait().await;
+                    let _ = child.kill();
                 });
             }
             return Err("Sidecar health check timed out after 30 seconds".to_string());
         }
 
-        match client.get(&health_url).send().await {
-            Ok(resp) if resp.status().is_success() => break,
+        let health_check = client.get(&health_url).send().await;
+        let is_healthy = match health_check {
+            Ok(resp) if resp.status().is_success() => true,
             _ => {
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                // Some sidecar implementations may not provide /health; fallback to /v1/models path
+                let model_check_url = format!("http://127.0.0.1:{}/v1/models", port);
+                match client.get(&model_check_url).send().await {
+                    Ok(resp2) if resp2.status().is_success() => true,
+                    _ => false,
+                }
             }
+        };
+
+        if is_healthy {
+            break;
         }
+
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     }
 
     Ok(port)

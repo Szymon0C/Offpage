@@ -23,10 +23,10 @@ export function ProjectPage() {
   const initialPromptSent = useRef(false);
 
   useEffect(() => {
-    if (id && !currentProject) {
+    if (id) {
       loadProjectById(id);
     }
-  }, [id, currentProject, loadProjectById]);
+  }, [id, loadProjectById]);
 
   // Auto-send template customization prompt from ?prompt= query param
   useEffect(() => {
@@ -73,7 +73,7 @@ export function ProjectPage() {
     <div className="h-full flex">
       <ChatPanel />
 
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative min-h-0">
         <PreviewToolbar />
         <PreviewFrame />
         <InlineEditBar onSubmit={handleInlineEdit} disabled={streaming} />

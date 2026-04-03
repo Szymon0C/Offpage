@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-LLAMA_VERSION="b5460"
+LLAMA_VERSION="b7472"
 BINARIES_DIR="src-tauri/binaries"
 mkdir -p "$BINARIES_DIR"
 
@@ -47,7 +47,7 @@ echo "Extracting..."
 case "$ARCHIVE" in
   *.tar.gz)
     tar -xzf "$TMP_DIR/$ARCHIVE" -C "$TMP_DIR"
-    cp "$TMP_DIR/build/bin/llama-server" "$DEST"
+    find "$TMP_DIR" -name "llama-server" -type f | head -n 1 | xargs -I {} cp {} "$DEST"
     ;;
   *.zip)
     unzip -o "$TMP_DIR/$ARCHIVE" -d "$TMP_DIR/extracted"

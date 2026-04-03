@@ -106,6 +106,29 @@ The app detects your hardware and adjusts automatically (quantization, model siz
 
 <br>
 
+## Setup
+
+### AI Model Setup
+
+Offpage requires a Qwen2.5-Coder AI model to function. The app will automatically detect your hardware and recommend the appropriate model size.
+
+**First Launch:**
+1. Open the app
+2. The app will detect your hardware automatically
+3. Choose a model from the recommended options
+4. Click "Download & Start AI" — the model will be downloaded and set up automatically
+
+**Model Options:**
+- **Qwen2.5-Coder-7B-Instruct** (~4.3 GB) — Recommended for 16GB+ RAM systems
+- **Qwen2.5-Coder-3B-Instruct** (~2.0 GB) — For systems with 8GB RAM
+
+Models are downloaded from Hugging Face and stored locally in your app data directory. This is a one-time setup that requires an internet connection.
+
+**Subsequent Launches:**
+The app will automatically detect and load any previously downloaded models.
+
+<br>
+
 ## Status
 
 > **Early development** — architecture designed, implementation starting.
