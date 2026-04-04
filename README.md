@@ -26,8 +26,6 @@ No cloud. No API keys. No subscriptions. Full privacy.
 
 <img src="docs/assets/preview.png" alt="Offpage Preview" width="720">
 
-<sub>screenshot coming soon</sub>
-
 <br><br>
 
 [**Download**](#download) &nbsp;&middot;&nbsp; [**Getting Started**](#getting-started) &nbsp;&middot;&nbsp; [**Features**](#features) &nbsp;&middot;&nbsp; [**Contributing**](#contributing)
