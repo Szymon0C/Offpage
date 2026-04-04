@@ -5,7 +5,7 @@ import type { ChatMessage } from '../types/project';
 interface ChatState {
   messages: ChatMessage[];
   streaming: boolean;
-  streamBuffer: string;
+  streamStatus: string;
   loadMessages: (projectId: string) => Promise<void>;
   addMessage: (
     projectId: string,
@@ -14,15 +14,14 @@ interface ChatState {
     editType?: 'chat' | 'inline' | 'wysiwyg' | null
   ) => Promise<ChatMessage>;
   setStreaming: (streaming: boolean) => void;
-  appendToStream: (token: string) => void;
-  finalizeStream: (projectId: string) => Promise<ChatMessage>;
+  setStreamStatus: (status: string) => void;
   clearMessages: () => void;
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>((set, _get) => ({
   messages: [],
   streaming: false,
-  streamBuffer: '',
+  streamStatus: '',
 
   loadMessages: async (projectId: string) => {
     const db = await getDatabase();
@@ -54,21 +53,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setStreaming: (streaming) => {
-    set({ streaming, streamBuffer: streaming ? '' : get().streamBuffer });
+    set({ streaming, streamStatus: streaming ? '' : '' });
   },
 
-  appendToStream: (token) => {
-    set((state) => ({ streamBuffer: state.streamBuffer + token }));
-  },
-
-  finalizeStream: async (projectId) => {
-    const { streamBuffer, addMessage } = get();
-    const message = await addMessage(projectId, 'assistant', streamBuffer, 'chat');
-    set({ streaming: false, streamBuffer: '' });
-    return message;
+  setStreamStatus: (status) => {
+    set({ streamStatus: status });
   },
 
   clearMessages: () => {
-    set({ messages: [], streaming: false, streamBuffer: '' });
+    set({ messages: [], streaming: false, streamStatus: '' });
   },
 }));

@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code — Practical Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-code: #1a1a2e;
+    --bg-elevated: #1e1e30;
+    --accent: #7c6aef;
+    --accent-glow: rgba(124, 106, 239, 0.15);
+    --accent-hover: #9585f5;
+    --green: #34d399;
+    --orange: #fb923c;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --cyan: #22d3ee;
+    --yellow: #fbbf24;
+    --text: #e2e2ef;
+    --text-dim: #8888a8;
+    --border: #2a2a3e;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 50% 50%, var(--accent-glow) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse {
+    from { opacity: 0.5; transform: scale(1); }
+    to { opacity: 1; transform: scale(1.1); }
+  }
+
+  .hero > * { position: relative; z-index: 1; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+  }
+
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 3rem;
+  }
+
+  .hero-stat {
+    text-align: center;
+  }
+
+  .hero-stat .value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .hero-stat .label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    animation: bounce 2s infinite;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+
+  nav .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0.5rem 0;
+  }
+
+  nav .nav-inner::-webkit-scrollbar { display: none; }
+
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--text);
+    background: var(--bg-elevated);
+  }
+
+  /* ── Sections ── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  section {
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  section:last-of-type { border-bottom: none; }
+
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    max-width: 700px;
+    margin-bottom: 3rem;
+    font-size: 1.05rem;
+  }
+
+  /* ── Cards Grid ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s;
+    cursor: default;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px var(--accent-glow);
+  }
+
+  .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+
+  .card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.6; }
+
+  .card .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.75rem;
+  }
+
+  /* ── Code Blocks ── */
+  .code-block {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  .code-block .lang {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .code-block .comment { color: #6272a4; }
+  .code-block .keyword { color: var(--accent); }
+  .code-block .string { color: var(--green); }
+  .code-block .func { color: var(--blue); }
+  .code-block .flag { color: var(--orange); }
+  .code-block .dim { color: var(--text-dim); }
+
+  /* ── Workflow ── */
+  .workflow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    margin: 2rem 0;
+  }
+
+  .workflow-step {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    position: relative;
+  }
+
+  .workflow-step::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .workflow-step:last-child::before { display: none; }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .step-content { flex: 1; }
+  .step-content h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .step-content p { font-size: 0.85rem; color: var(--text-dim); }
+
+  /* ── Comparison table ── */
+  .comparison {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+  }
+
+  .comparison th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--accent);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .comparison td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  .comparison tr:hover td { background: var(--bg-elevated); }
+
+  .comparison .emoji { font-size: 1.1rem; }
+
+  /* ── Tip boxes ── */
+  .tip {
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+  }
+
+  .tip.warning { border-left-color: var(--orange); }
+  .tip.danger { border-left-color: var(--red); }
+  .tip.success { border-left-color: var(--green); }
+
+  .tip strong { color: var(--text); }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .tab {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Accordion ── */
+  .accordion { margin: 1rem 0; }
+
+  .accordion-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+  }
+
+  .accordion-header {
+    width: 100%;
+    background: var(--bg-card);
+    border: none;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    transition: background 0.2s;
+  }
+
+  .accordion-header:hover { background: var(--bg-elevated); }
+
+  .accordion-header .arrow {
+    transition: transform 0.3s;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .accordion-item.open .accordion-header .arrow { transform: rotate(180deg); }
+
+  .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    background: var(--bg-card);
+  }
+
+  .accordion-item.open .accordion-body { max-height: 2000px; }
+
+  .accordion-body-inner {
+    padding: 0 1.25rem 1.25rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ── Token counter animation ── */
+  .token-counter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .token-counter .num {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .token-counter .unit {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+  }
+
+  /* ── Interactive demo ── */
+  .demo-terminal {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .demo-titlebar {
+    background: #161b22;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #30363d;
+  }
+
+  .demo-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .demo-dot.red { background: #ff5f57; }
+  .demo-dot.yellow { background: #febc2e; }
+  .demo-dot.green { background: #28c840; }
+
+  .demo-titlebar span {
+    flex: 1;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #8b949e;
+  }
+
+  .demo-body {
+    padding: 1rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    min-height: 200px;
+  }
+
+  .demo-line { margin-bottom: 0.25rem; }
+  .demo-prompt { color: var(--green); }
+  .demo-cmd { color: var(--text); }
+  .demo-output { color: var(--text-dim); }
+  .demo-highlight { color: var(--accent); }
+  .demo-typing {
+    display: inline;
+    border-right: 2px solid var(--accent);
+    animation: cursor-blink 1s infinite;
+  }
+
+  @keyframes cursor-blink {
+    0%, 100% { border-color: var(--accent); }
+    50% { border-color: transparent; }
+  }
+
+  /* ── Color-coded icons ── */
+  .icon-purple { background: rgba(124, 106, 239, 0.15); color: var(--accent); }
+  .icon-green { background: rgba(52, 211, 153, 0.15); color: var(--green); }
+  .icon-orange { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+  .icon-blue { background: rgba(96, 165, 250, 0.15); color: var(--blue); }
+  .icon-cyan { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+  .icon-red { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+  .icon-yellow { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
+
+  .tag-purple { background: rgba(124, 106, 239, 0.15); color: var(--accent); }
+  .tag-green { background: rgba(52, 211, 153, 0.15); color: var(--green); }
+  .tag-orange { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+  .tag-blue { background: rgba(96, 165, 250, 0.15); color: var(--blue); }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2rem; }
+    .cards { grid-template-columns: 1fr; }
+    .hero-stats { gap: 1rem; }
+    section { padding: 3rem 0; }
+    h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HERO ═══════════ -->
+<header class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Internal Knowledge Base
+  </div>
+  <h1>Jak korzystamy z<br><span>Claude Code</span></h1>
+  <p>Praktyczny przewodnik na bazie budowania Offpage — od zera do działającej aplikacji desktopowej. Realne workflow, narzędzia i wnioski.</p>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="value">6</div>
+      <div class="label">Faz projektu</div>
+    </div>
+    <div class="hero-stat">
+      <div class="value">12+</div>
+      <div class="label">Narzędzi CLI</div>
+    </div>
+    <div class="hero-stat">
+      <div class="value">8</div>
+      <div class="label">Typów agentów</div>
+    </div>
+    <div class="hero-stat">
+      <div class="value">14</div>
+      <div class="label">Bugów znalezionych</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">&#8595; Scroll down</div>
+</header>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#tools">Narzędzia</a>
+    <a href="#agents">Agenci</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#memory">Pamięć</a>
+    <a href="#prompts">Prompty</a>
+    <a href="#skills">Skills</a>
+    <a href="#git">Git & PR</a>
+    <a href="#debugging">Debugging</a>
+    <a href="#tips">Tips & Tricks</a>
+  </div>
+</nav>
+
+<!-- ═══════════ CORE TOOLS ═══════════ -->
+<section id="tools">
+  <div class="container">
+    <div class="section-label">Fundamenty</div>
+    <h2>Narzędzia wbudowane</h2>
+    <p class="section-desc">Claude Code ma dedykowane narzędzia do każdego typu operacji. Kluczowa zasada: <strong>nigdy nie używaj Bash do rzeczy, które mają dedykowane narzędzie</strong>.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon icon-blue">R</div>
+        <h3>Read</h3>
+        <p>Czytanie plików. Zawsze czytaj plik przed edycją. Obsługuje obrazy, PDF-y, Jupyter notebooks. Można czytać zakres linii (offset + limit) dla dużych plików.</p>
+        <div class="tag tag-blue">Zamiast: cat, head, tail</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-green">E</div>
+        <h3>Edit</h3>
+        <p>Precyzyjne edycje — podajesz <code>old_string</code> i <code>new_string</code>. Wysyła tylko diff, nie cały plik. Parametr <code>replace_all</code> do masowej zamiany (np. rename zmiennej).</p>
+        <div class="tag tag-green">Zamiast: sed, awk</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-purple">W</div>
+        <h3>Write</h3>
+        <p>Tworzenie nowych plików lub pełne przepisanie istniejących. Wymaga wcześniejszego Read dla istniejących plików. Preferuj Edit gdy zmieniasz fragment.</p>
+        <div class="tag tag-purple">Zamiast: echo >, heredoc</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-cyan">G</div>
+        <h3>Grep</h3>
+        <p>Wyszukiwanie w treści plików — regex, filtrowanie po typie pliku, tryby: content, files_with_matches, count. Obsługuje multiline matching.</p>
+        <div class="tag tag-cyan">Zamiast: grep, rg</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-orange">*</div>
+        <h3>Glob</h3>
+        <p>Wyszukiwanie plików po wzorcu nazwy: <code>**/*.tsx</code>, <code>src/stores/*.ts</code>. Sortuje po dacie modyfikacji. Idealne do szukania konkretnych plików.</p>
+        <div class="tag tag-orange">Zamiast: find, ls</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-red">$</div>
+        <h3>Bash</h3>
+        <p>Komendy systemowe: git, npm, cargo build, testy. Użwaj <strong>tylko</strong> gdy brak dedykowanego narzędzia. Obsługuje timeout i <code>run_in_background</code>.</p>
+        <div class="tag tag-red">Ostateczność</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-yellow">T</div>
+        <h3>TodoWrite</h3>
+        <p>Lista zadań w sesji. Statusy: pending → in_progress → completed. Pomaga śledzić postęp przy złożonych zadaniach. Max 1 task in_progress.</p>
+        <div class="tag tag-yellow">Organizacja pracy</div>
+      </div>
+    </div>
+
+    <div class="tip" style="margin-top: 2rem;">
+      <strong>Realne użycie z projektu:</strong> W Offpage każda sesja zaczynała się od Read kluczowych plików (store'y, komponenty), Grep do znalezienia zależności, a Edit do chirurgicznych zmian. Write był używany tylko przy tworzeniu nowych komponentów lub pełnym przepisaniu promptów AI.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ AGENTS ═══════════ -->
+<section id="agents">
+  <div class="container">
+    <div class="section-label">Równoległość</div>
+    <h2>System agentów (subagents)</h2>
+    <p class="section-desc">Agenci to niezależne procesy, które mogą pracować równolegle. Każdy ma swój kontekst i dostęp do narzędzi. Kluczowe: <strong>uruchamiaj niezależnych agentów równolegle</strong>.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon icon-purple">E</div>
+        <h3>Explore</h3>
+        <p>Szybkie eksplorowanie codebase. Trzy tryby: quick, medium, very thorough. Używaj do szerokiego rozpoznania — np. "jak działają deploy providery?"</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-blue">P</div>
+        <h3>Plan</h3>
+        <p>Architekt software'u — projektuje plany implementacji. Zwraca kroki, identyfikuje krytyczne pliki, rozważa trade-offy. Nie pisze kodu.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-green">CR</div>
+        <h3>code-reviewer</h3>
+        <p>Review po ukończeniu większego kroku. Sprawdza zgodność z planem, standardy kodowania, potencjalne bugi. Używany po zakończeniu fazy.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-orange">GP</div>
+        <h3>general-purpose</h3>
+        <p>Uniwersalny agent do złożonych, wielokrokowych zadań. Szukanie kodu, odpowiadanie na pytania, badanie problemów. Ma dostęp do wszystkich narzędzi.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-cyan">CS</div>
+        <h3>code-simplifier</h3>
+        <p>Upraszcza i refaktoryzuje kod. Skupia się na niedawno zmodyfikowanych plikach. Zachowuje funkcjonalność, poprawia czytelność.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 2.5rem;">Równoległe uruchomienie agentów</h3>
+    <p style="color: var(--text-dim); margin-bottom: 1rem; font-size: 0.9rem;">W Offpage używaliśmy agentów równolegle do review i testów:</p>
+
+    <div class="demo-terminal">
+      <div class="demo-titlebar">
+        <div class="demo-dot red"></div>
+        <div class="demo-dot yellow"></div>
+        <div class="demo-dot green"></div>
+        <span>Claude Code — parallel agents</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-line"><span class="demo-highlight">// Claude wysyła JEDEN message z wieloma Agent tool calls:</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-prompt">Agent 1</span> <span class="demo-output">→ subagent_type: "code-reviewer"</span></div>
+        <div class="demo-line"><span class="demo-output">  "Review the Phase 5 deploy implementation against the plan"</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-prompt">Agent 2</span> <span class="demo-output">→ subagent_type: "Explore"</span></div>
+        <div class="demo-line"><span class="demo-output">  "Find all places where deploy_config is used"</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-prompt">Agent 3</span> <span class="demo-output">→ subagent_type: "general-purpose"</span></div>
+        <div class="demo-line"><span class="demo-output">  "Run TypeScript type-check and report errors"</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-highlight">// Wszystkie 3 pracują równolegle, wyniki wracają niezależnie</span></div>
+      </div>
+    </div>
+
+    <div class="tip success">
+      <strong>Worktree isolation:</strong> Agenty mogą pracować w izolowanym git worktree (<code>isolation: "worktree"</code>). Każdy dostaje kopię repo i nie wpływa na główny branch. Przydatne przy ryzykownych eksperymentach.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ WORKFLOW ═══════════ -->
+<section id="workflow">
+  <div class="container">
+    <div class="section-label">Proces</div>
+    <h2>Workflow budowania Offpage</h2>
+    <p class="section-desc">Tak wyglądał nasz cykl pracy. Każda faza miała plan, implementację, review i fixy.</p>
+
+    <div class="workflow">
+      <div class="workflow-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Planowanie (EnterPlanMode)</h4>
+          <p>Przed każdą fazą wchodziliśmy w Plan Mode — Claude analizuje codebase, proponuje architekturę, identyfikuje zależności. Plan jest widoczny i edytowalny. User akceptuje lub modyfikuje podejście.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>Implementacja z TodoWrite</h4>
+          <p>Plan rozbijany na zadania w TodoWrite. Claude pracuje sekwencyjnie — jedno zadanie na raz, mark as completed po zakończeniu. User widzi postęp w real-time.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Type-check & Build</h4>
+          <p>Po implementacji: <code>npx tsc --noEmit</code> (TypeScript), <code>cargo build</code> (Rust). Fixy iteracyjne — Claude czyta błąd, naprawia, sprawdza ponownie.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>Code Review (Agent)</h4>
+          <p>Po ukończeniu fazy — code-reviewer agent sprawdza zgodność z planem. W przypadku Offpage dodatkowo CodeRabbit (GitHub bot) robił automated review na PR.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h4>Git & PR</h4>
+          <p>Commit z opisem zmian, push, PR do main. Claude generuje tytuł i body PR automatycznie (summary + test plan). Squash merge do main.</p>
+        </div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h4>Manual testing & Fixy</h4>
+          <p>User testuje ręcznie, raportuje problemy w naturalnym języku (nawet po polsku). Claude czyta opis, analizuje logi, identyfikuje root cause, naprawia.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip warning">
+      <strong>Lekcja z projektu:</strong> Nie pomijaj manual testing. W Offpage automated review znalazł 14 bugów, ale prawdziwy blocker (brak dylibs dla llama-server) wyszedł dopiero przy ręcznym uruchomieniu. Claude potrafi czytać console logi wklejone do chatu i diagnozować root cause.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ MEMORY ═══════════ -->
+<section id="memory">
+  <div class="container">
+    <div class="section-label">Persistencja</div>
+    <h2>System pamięci</h2>
+    <p class="section-desc">Claude Code ma plikowy system pamięci, który przetrwa między sesjami. Pamięć buduje się automatycznie — im więcej pracujesz, tym lepiej Claude rozumie kontekst.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="memory-types" role="tab">Typy pamięci</button>
+      <button class="tab" data-tab="memory-files" role="tab">Struktura plików</button>
+      <button class="tab" data-tab="memory-examples" role="tab">Przykłady z projektu</button>
+    </div>
+
+    <div class="tab-panel active" id="memory-types">
+      <table class="comparison">
+        <thead>
+          <tr>
+            <th>Typ</th>
+            <th>Kiedy zapisywać</th>
+            <th>Przykład</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color: var(--accent);">user</strong></td>
+            <td>Rola, preferencje, poziom wiedzy</td>
+            <td>"User komunikuje się po polsku, preferuje autonomiczne działanie"</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--green);">feedback</strong></td>
+            <td>Korekty i potwierdzenia podejścia</td>
+            <td>"Pushuj regularnie, nie batchuj na koniec"</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--orange);">project</strong></td>
+            <td>Decyzje, cele, deadliny</td>
+            <td>"Tauri 2.0 + llama.cpp, cross-platform macOS/Windows"</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--blue);">reference</strong></td>
+            <td>Linki do zewnętrznych zasobów</td>
+            <td>"Bugi trackowane w Linear, projekt INGEST"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tab-panel" id="memory-files">
+      <div class="code-block">
+        <span class="lang">file structure</span>
+<span class="dim"># Każda pamięć to osobny plik .md z frontmatter:</span>
+.claude/projects/&lt;project&gt;/memory/
+├── MEMORY.md              <span class="comment"># Indeks — 1 linia na pamięć</span>
+├── user_profile.md        <span class="comment"># type: user</span>
+├── feedback_push.md       <span class="comment"># type: feedback</span>
+├── project_overview.md    <span class="comment"># type: project</span>
+├── project_tech_stack.md  <span class="comment"># type: project</span>
+└── project_status.md      <span class="comment"># type: project</span>
+
+<span class="dim"># Format pliku pamięci:</span>
+<span class="keyword">---</span>
+<span class="func">name:</span> <span class="string">Tech Stack Decisions</span>
+<span class="func">description:</span> <span class="string">Tauri 2.0 + llama.cpp sidecar</span>
+<span class="func">type:</span> <span class="string">project</span>
+<span class="keyword">---</span>
+Treść pamięci...
+      </div>
+    </div>
+
+    <div class="tab-panel" id="memory-examples">
+      <div class="tip success">
+        <strong>user_profile.md:</strong> "Szymon, komunikuje się po polsku, preferuje autonomiczne działanie. Instrukcja: merguj jak uważasz, bądź autonomiczny."
+      </div>
+      <div class="tip">
+        <strong>feedback_push_regularly.md:</strong> "User chce regularnych pushów i aktualizacji dokumentacji, nie batchowania na końcu. Why: łatwiejsze śledzenie postępu."
+      </div>
+      <div class="tip warning">
+        <strong>Czego NIE zapisywać:</strong> Ścieżki plików, struktury kodu, historii gita — to Claude odczytuje na żywo. Pamięć to kontekst biznesowy i preferencje, nie cache kodu.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PROMPTY / CLAUDE.md ═══════════ -->
+<section id="prompts">
+  <div class="container">
+    <div class="section-label">Konfiguracja</div>
+    <h2>CLAUDE.md — instrukcje dla Claude</h2>
+    <p class="section-desc">Plik CLAUDE.md w root projektu to "system prompt" dla Claude Code. Definiuje zachowanie, konwencje i zasady.</p>
+
+    <div class="code-block">
+      <span class="lang">CLAUDE.md</span>
+<span class="keyword"># CLAUDE.md</span>
+
+<span class="func">## Project Overview</span>
+<span class="dim">Offpage — desktop app generating websites with local AI.</span>
+
+<span class="func">## Approach</span>
+<span class="string">- Think before acting. Read existing files before writing code.</span>
+<span class="string">- Be concise in output but thorough in reasoning.</span>
+<span class="string">- Prefer editing over rewriting whole files.</span>
+<span class="string">- Do not re-read files you have already read.</span>
+<span class="string">- Test your code before declaring done.</span>
+<span class="string">- No sycophantic openers or closing fluff.</span>
+<span class="string">- Keep solutions simple and direct.</span>
+<span class="string">- User instructions always override this file.</span>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Hierarchia instrukcji</h3>
+    <table class="comparison">
+      <thead>
+        <tr><th>Priorytet</th><th>Źródło</th><th>Opis</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color: var(--red);">1 (najwyższy)</strong></td>
+          <td>Wiadomość użytkownika</td>
+          <td>Bezpośrednie polecenia w chacie</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--orange);">2</strong></td>
+          <td>CLAUDE.md (projekt)</td>
+          <td>Plik w repo — konwencje zespołu</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--yellow);">3</strong></td>
+          <td>Superpowers skills</td>
+          <td>Pluginy — nadpisują domyślne zachowanie</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--text-dim);">4</strong></td>
+          <td>System prompt</td>
+          <td>Wbudowane instrukcje Claude Code</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip">
+      <strong>Pro tip:</strong> CLAUDE.md jest commitowany do repo — cały zespół dzieli te same instrukcje. Osobiste preferencje idą do <code>~/.claude/</code> (globalny CLAUDE.md) lub pamięci.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SKILLS ═══════════ -->
+<section id="skills">
+  <div class="container">
+    <div class="section-label">Rozszerzenia</div>
+    <h2>Skills & Superpowers</h2>
+    <p class="section-desc">Skills to wyspecjalizowane rozszerzenia Claude Code. Są wywoływane automatycznie lub ręcznie przez slash commands.</p>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <button class="accordion-header">
+          <span>/commit — Inteligentne commity</span>
+          <span class="arrow">&#9660;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>Claude analizuje staged changes, drafuje commit message ("why" nie "what"), dodaje Co-Authored-By. Weryfikuje czy nie commitujesz .env czy credentials. Respektuje pre-commit hooks.</p>
+            <div class="code-block">
+<span class="dim"># Wystarczy napisać:</span>
+<span class="keyword">/commit</span>
+
+<span class="dim"># Claude automatycznie:</span>
+<span class="string">1. git status (sprawdza co się zmieniło)</span>
+<span class="string">2. git diff (analizuje zmiany)</span>
+<span class="string">3. git log (czyta styl commitów w repo)</span>
+<span class="string">4. Drafuje message + staging + commit</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header">
+          <span>code-reviewer — Automatyczny review</span>
+          <span class="arrow">&#9660;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>Wywoływany po ukończeniu większego kroku. Porównuje implementację z planem, szuka bugów, sprawdza standardy. W Offpage znalazł 14 bugów w jednym przebiegu.</p>
+            <div class="tip danger">
+              <strong>Znalezione bugi w Offpage:</strong> Tauri invoke params (camelCase vs snake_case), stale closures w React useCallback, brakujące error handling, typ mismatch (string vs object) w SQLite, event listener leaks.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header">
+          <span>Brainstorming — przed każdym planem</span>
+          <span class="arrow">&#9660;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>Skill automatycznie wywoływany przed EnterPlanMode. Pomaga przemyśleć podejście zanim zacznie się kodować. Rozważa alternatywy, identyfikuje ryzyka.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header">
+          <span>MCP Servers — integracje zewnętrzne</span>
+          <span class="arrow">&#9660;</span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">
+            <p>Model Context Protocol pozwala Claude Code komunikować się z zewnętrznymi serwisami. W naszym setupie mamy skonfigurowane:</p>
+            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+              <li>Notion — tworzenie stron, baz danych, komentarzy</li>
+              <li>Gmail — szukanie wiadomości, tworzenie draftów</li>
+              <li>Jira/Confluence — issue tracking, dokumentacja</li>
+              <li>Chrome Control — automatyzacja przeglądarki</li>
+              <li>Context7 — aktualna dokumentacja bibliotek</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ GIT ═══════════ -->
+<section id="git">
+  <div class="container">
+    <div class="section-label">Wersjonowanie</div>
+    <h2>Git workflow</h2>
+    <p class="section-desc">Claude Code jest świadomy gita i potrafi zarządzać branchami, commitami i PR-ami. Ale domyślnie jest ostrożny — pyta przed destrukcyjnymi operacjami.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="git-rules" role="tab">Zasady bezpieczeństwa</button>
+      <button class="tab" data-tab="git-pr" role="tab">Tworzenie PR</button>
+      <button class="tab" data-tab="git-real" role="tab">Realne sytuacje</button>
+    </div>
+
+    <div class="tab-panel active" id="git-rules">
+      <table class="comparison">
+        <thead>
+          <tr><th>Zasada</th><th>Dlaczego</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nigdy <code>--force push</code> bez potwierdzenia</td>
+            <td>Może nadpisać cudze zmiany</td>
+          </tr>
+          <tr>
+            <td>Nigdy <code>--no-verify</code></td>
+            <td>Pomija hooks — diagnozuj przyczynę</td>
+          </tr>
+          <tr>
+            <td>Nowe commity, nie amend</td>
+            <td>Amend po failed hook nadpisuje poprzedni commit</td>
+          </tr>
+          <tr>
+            <td>Nie commituje .env, credentials</td>
+            <td>Bezpieczeństwo — ostrzega gdy próbujesz</td>
+          </tr>
+          <tr>
+            <td>Specific files, nie <code>git add -A</code></td>
+            <td>Zapobiega przypadkowemu dodaniu śmieci</td>
+          </tr>
+          <tr>
+            <td>Commituje TYLKO gdy poprosisz</td>
+            <td>Nie jest nadmiernie proaktywny</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tab-panel" id="git-pr">
+      <div class="code-block">
+        <span class="lang">PR creation flow</span>
+<span class="dim"># Claude automatycznie robi te kroki:</span>
+
+<span class="func">1.</span> git status + git diff                <span class="comment"># co się zmieniło</span>
+<span class="func">2.</span> git log + git diff main...HEAD       <span class="comment"># pełna historia brancha</span>
+<span class="func">3.</span> Analiza WSZYSTKICH commitów            <span class="comment"># nie tylko ostatni!</span>
+<span class="func">4.</span> Drafowanie title + body
+<span class="func">5.</span> gh pr create --title "..." --body "..." <span class="comment"># via GitHub CLI</span>
+
+<span class="dim"># Format body:</span>
+<span class="keyword">## Summary</span>
+<span class="string">- Bullet points zmian</span>
+
+<span class="keyword">## Test plan</span>
+<span class="string">- [ ] Checklist do testowania</span>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="git-real">
+      <h3>Sytuacje z Offpage</h3>
+      <div class="tip warning">
+        <strong>Rebase conflict po squash merge:</strong> Po squash merge PR do main, lokalny branch miał konflikty z rebase. Rozwiązanie: <code>git reset --hard origin/main</code> (z potwierdzeniem usera) i kontynuacja pracy na czystej bazie.
+      </div>
+      <div class="tip">
+        <strong>Worktree do izolacji:</strong> Claude Code pracował w git worktree (<code>.claude/worktrees/gifted-satoshi</code>) — izolowana kopia repo, nie wpływała na główny katalog. Worktree jest tworzony automatycznie.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DEBUGGING ═══════════ -->
+<section id="debugging">
+  <div class="container">
+    <div class="section-label">Diagnostyka</div>
+    <h2>Debugging z Claude Code</h2>
+    <p class="section-desc">Najskuteczniejszy pattern z Offpage: user testuje ręcznie → wkleja logi/opis → Claude diagnozuje root cause.</p>
+
+    <h3>Realny case: "Sidecar nie startuje"</h3>
+
+    <div class="demo-terminal">
+      <div class="demo-titlebar">
+        <div class="demo-dot red"></div>
+        <div class="demo-dot yellow"></div>
+        <div class="demo-dot green"></div>
+        <span>Debugging session</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-line"><span class="demo-highlight">User:</span> <span class="demo-output">"Po wyborze modelu pojawia się Starting AI model</span></div>
+        <div class="demo-line"><span class="demo-output">i po chwili wraca do wyboru modelu — nic się nie dzieje"</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-highlight">Claude:</span> <span class="demo-output">// Dodaje debug logi z prefixami [AI], [ChatPanel]</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-highlight">User:</span> <span class="demo-output">// Wkleja Console.txt z devtools</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-highlight">Claude:</span> <span class="demo-output">// Czyta logi, widzi:</span></div>
+        <div class="demo-line"><span class="demo-prompt">[AI]</span> <span class="demo-output">Sidecar failed: "health check timed out"</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-highlight">Claude:</span> <span class="demo-output">// Sprawdza binary:</span></div>
+        <div class="demo-line"><span class="demo-prompt">$</span> <span class="demo-cmd">otool -L llama-server</span></div>
+        <div class="demo-line"><span class="demo-output">dyld: Library not loaded: @rpath/libmtmd.0.dylib</span></div>
+        <div class="demo-line">&nbsp;</div>
+        <div class="demo-line"><span class="demo-highlight">Root cause:</span> <span class="demo-cmd">Binary needs 8 .dylib files, setup script copied only the binary.</span></div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Wzorzec debug sesji</h3>
+    <div class="workflow">
+      <div class="workflow-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Dodaj logi diagnostyczne</h4>
+          <p>Dodaj console.log z prefiksami w kluczowych punktach flow. Np. <code>[AI] Starting sidecar...</code>, <code>[ChatPanel] initAI...</code></p>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>User testuje i wkleja logi</h4>
+          <p>Użytkownik uruchamia apkę, kopiuje output z console/devtools, wkleja do Claude Code.</p>
+        </div>
+      </div>
+      <div class="workflow-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Claude analizuje i naprawia</h4>
+          <p>Claude czyta logi, identyfikuje root cause, naprawia problem. Weryfikuje fix przez type-check lub build.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TIPS ═══════════ -->
+<section id="tips">
+  <div class="container">
+    <div class="section-label">Najlepsze praktyki</div>
+    <h2>Tips & Tricks</h2>
+    <p class="section-desc">Wnioski z ponad 6 faz rozwoju Offpage — co działa, czego unikać.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon icon-green">&#10003;</div>
+        <h3>Mów co chcesz, nie jak</h3>
+        <p>"Napraw stylowanie sidebara — nie mieści się w 300px" jest lepsze niż "zmień padding z p-8 na p-3". Claude sam zbada i zaproponuje najlepszy fix.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-green">&#10003;</div>
+        <h3>Pisz w swoim języku</h3>
+        <p>Claude rozumie polski, angielski i inne. W Offpage komunikacja była po polsku, a kod i commity po angielsku — zero problemów.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-green">&#10003;</div>
+        <h3>Wklejaj logi i screenshoty</h3>
+        <p>Claude czyta pliki graficzne (Read tool). Console output, stack trace, screenshot błędu — im więcej kontekstu, tym szybsza diagnoza.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-green">&#10003;</div>
+        <h3>Pozwól na autonomię</h3>
+        <p>"Działaj jak uważasz" — Claude sam zdecyduje o kolejności, mergowaniu PR, strukturze. Możesz nadzorować lub dać pełną wolność.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-red">&#10007;</div>
+        <h3>Nie powtarzaj instrukcji</h3>
+        <p>Zapisz preferencje w CLAUDE.md lub pamięci. Nie powtarzaj "używaj TypeScript" w każdej sesji — raz wystarczy.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-red">&#10007;</div>
+        <h3>Nie ignoruj review</h3>
+        <p>Code-reviewer agent znalazł 14 bugów w Offpage naraz. Pomiń go a bugi trafią do produkcji.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-red">&#10007;</div>
+        <h3>Nie batchuj na koniec</h3>
+        <p>Commituj i pushuj regularnie. Jeden wielki commit na koniec = trudny review, konflikty, stracona praca przy crashu.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-orange">!</div>
+        <h3>Context window się kończy</h3>
+        <p>Przy dużych sesji Claude automatycznie kompresuje wcześniejsze wiadomości. Ważne informacje zapisuj do pamięci lub plików — nie polegaj na "pamiętaniu".</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 3rem;">Tryby pracy Claude Code</h3>
+    <table class="comparison">
+      <thead>
+        <tr><th>Tryb</th><th>Kiedy używać</th><th>Opis</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color: var(--accent);">Plan Mode</strong></td>
+          <td>Przed implementacją</td>
+          <td>Claude projektuje architekturę, nie pisze kodu. Wyj z /plan lub EnterPlanMode.</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--green);">Fast Mode</strong></td>
+          <td>Proste, powtarzalne zadania</td>
+          <td>Ten sam model (Opus 4.6) ale z szybszym output. Toggle: /fast</td>
+        </tr>
+        <tr>
+          <td><strong style="color: var(--orange);">Background agents</strong></td>
+          <td>Niezależne zadania</td>
+          <td>Agent pracuje w tle, powiadomienie po zakończeniu. Nie blokuje głównej konwersacji.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 3rem;">Skróty klawiaturowe</h3>
+    <table class="comparison">
+      <thead>
+        <tr><th>Skrót</th><th>Akcja</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/help</code></td><td>Pomoc i lista komend</td></tr>
+        <tr><td><code>/clear</code></td><td>Czyści kontekst konwersacji</td></tr>
+        <tr><td><code>/commit</code></td><td>Inteligentny commit</td></tr>
+        <tr><td><code>/fast</code></td><td>Toggle szybkiego trybu</td></tr>
+        <tr><td><code>Esc</code></td><td>Przerwij bieżącą operację</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <p>Built with Claude Code (Opus 4.6) &middot; Based on real project: <a href="#">Offpage</a></p>
+  <p style="margin-top: 0.5rem;">Internal documentation &middot; 2026</p>
+</footer>
+
+<!-- ═══════════ JS ═══════════ -->
+<script>
+  // ── Tab switching ──
+  document.querySelectorAll('.tabs').forEach(tabBar => {
+    tabBar.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const panelId = tab.dataset.tab;
+        const section = tabBar.parentElement;
+
+        tabBar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        section.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        section.querySelector('#' + panelId)?.classList.add('active');
+      });
+    });
+  });
+
+  // ── Accordion ──
+  document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const item = header.parentElement;
+      const wasOpen = item.classList.contains('open');
+
+      // Close all in same accordion
+      item.parentElement.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // ── Nav highlight on scroll ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-30% 0px -70% 0px' });
+
+  sections.forEach(section => observer.observe(section));
+
+  // ── Animate hero stats on load ──
+  document.querySelectorAll('.hero-stat .value').forEach(el => {
+    const target = parseInt(el.textContent);
+    if (isNaN(target)) return;
+    const suffix = el.textContent.includes('+') ? '+' : '';
+    let current = 0;
+    const step = Math.max(1, Math.floor(target / 30));
+    const interval = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = current + suffix;
+      if (current >= target) clearInterval(interval);
+    }, 40);
+  });
+</script>
+</body>
+</html>
