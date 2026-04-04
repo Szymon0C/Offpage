@@ -5,7 +5,7 @@ import { useChatStore } from '../stores/chatStore';
 import { useAiStore } from '../stores/aiStore';
 import { useProjectStore } from '../stores/projectStore';
 import { replaceSectionInHtml, ensureSectionId } from '../lib/htmlSections';
-import { SYSTEM_PROMPTS, buildSectionEditMessages } from '../lib/prompts';
+import { SYSTEM_PROMPTS, buildSectionEditMessages, extractHtml } from '../lib/prompts';
 
 interface AiChunk {
   token: string;
@@ -16,7 +16,7 @@ export function useAiStream() {
   const unlistenRef = useRef<UnlistenFn | null>(null);
   const sidecarPort = useAiStore((s) => s.sidecarPort);
   const sidecarStatus = useAiStore((s) => s.sidecarStatus);
-  const { setStreaming, appendToStream, finalizeStream } = useChatStore();
+  const { setStreaming, setStreamStatus, addMessage } = useChatStore();
   const updateProjectHtml = useProjectStore((s) => s.updateProjectHtml);
 
   useEffect(() => {
@@ -38,27 +38,42 @@ export function useAiStream() {
       }
 
       setStreaming(true);
+      setStreamStatus('Generating...');
 
+      // Track token count for status updates
+      let tokenCount = 0;
       const unlisten = await listen<AiChunk>('ai-chunk', (event) => {
         if (!event.payload.done) {
-          appendToStream(event.payload.token);
+          tokenCount++;
+          if (tokenCount % 50 === 0) {
+            setStreamStatus(`Generating... (${tokenCount} tokens)`);
+          }
         }
       });
       unlistenRef.current = unlisten;
 
       try {
-        const fullHtml = await invoke<string>('stream_generate', {
+        const rawResponse = await invoke<string>('stream_generate', {
           messages,
           systemPrompt,
           maxTokens: maxTokens ?? null,
         });
 
-        await finalizeStream(projectId);
-        await updateProjectHtml(projectId, fullHtml);
+        const cleanHtml = extractHtml(rawResponse);
+        await updateProjectHtml(projectId, cleanHtml);
 
-        return fullHtml;
+        // Save a friendly summary message instead of raw HTML
+        const isEdit = systemPrompt === SYSTEM_PROMPTS.editFull;
+        const summary = isEdit
+          ? 'Done! I\'ve updated the page with your changes.'
+          : 'Done! Your website has been generated. Check the preview!';
+        await addMessage(projectId, 'assistant', summary, 'chat');
+
+        setStreaming(false);
+        return cleanHtml;
       } catch (error) {
         console.error('AI generation failed:', error);
+        await addMessage(projectId, 'assistant', `Generation failed: ${error}`, 'chat');
         setStreaming(false);
         return null;
       } finally {
@@ -68,7 +83,7 @@ export function useAiStream() {
         }
       }
     },
-    [sidecarPort, sidecarStatus, setStreaming, appendToStream, finalizeStream, updateProjectHtml]
+    [sidecarPort, sidecarStatus, setStreaming, setStreamStatus, addMessage, updateProjectHtml]
   );
 
   const generateSection = useCallback(
@@ -85,10 +100,15 @@ export function useAiStream() {
       }
 
       setStreaming(true);
+      setStreamStatus('Editing section...');
 
+      let tokenCount = 0;
       const unlisten = await listen<AiChunk>('ai-chunk', (event) => {
         if (!event.payload.done) {
-          appendToStream(event.payload.token);
+          tokenCount++;
+          if (tokenCount % 50 === 0) {
+            setStreamStatus(`Editing section... (${tokenCount} tokens)`);
+          }
         }
       });
       unlistenRef.current = unlisten;
@@ -100,15 +120,17 @@ export function useAiStream() {
           maxTokens: null,
         });
 
-        await finalizeStream(projectId);
-
         const taggedSection = ensureSectionId(newSectionHtml, sectionId);
         const updatedHtml = replaceSectionInHtml(fullHtml, sectionId, taggedSection);
         await updateProjectHtml(projectId, updatedHtml);
 
+        await addMessage(projectId, 'assistant', 'Done! Section updated.', 'inline');
+        setStreaming(false);
+
         return updatedHtml;
       } catch (error) {
         console.error('Section edit failed:', error);
+        await addMessage(projectId, 'assistant', `Section edit failed: ${error}`, 'inline');
         setStreaming(false);
         return null;
       } finally {
@@ -118,7 +140,7 @@ export function useAiStream() {
         }
       }
     },
-    [sidecarPort, sidecarStatus, setStreaming, appendToStream, finalizeStream, updateProjectHtml]
+    [sidecarPort, sidecarStatus, setStreaming, setStreamStatus, addMessage, updateProjectHtml]
   );
 
   return { generate, generateSection };

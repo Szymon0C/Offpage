@@ -33,3 +33,6 @@ Thumbs.db
 
 # Sidecar binaries (downloaded, not committed)
 src-tauri/binaries/
+
+# Cargo lock (generated)
+src-tauri/Cargo.lock

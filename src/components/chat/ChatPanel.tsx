@@ -14,7 +14,7 @@ import {
 
 export function ChatPanel() {
   const currentProject = useProjectStore((s) => s.currentProject);
-  const { messages, streaming, streamBuffer, loadMessages, addMessage } =
+  const { messages, streaming, streamStatus, loadMessages, addMessage } =
     useChatStore();
   const createSnapshot = useProjectStore((s) => s.createSnapshot);
   const { sidecarStatus, detectHardware, isDownloading, downloadProgress, error, checkModelExists, getModelPath, startSidecar } = useAiStore();
@@ -30,7 +30,7 @@ export function ChatPanel() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamBuffer]);
+  }, [messages, streamStatus]);
 
   // Initialize AI on first render
   useEffect(() => {
@@ -39,22 +39,24 @@ export function ChatPanel() {
 
     const initAI = async () => {
       try {
-        // Detect hardware
+        console.log('[ChatPanel] initAI starting...');
         await detectHardware();
 
-        // Check for existing models and auto-start
         const modelFiles = ['qwen2.5-coder-7b-instruct-q4_0.gguf', 'qwen2.5-coder-3b-instruct-q4_0.gguf'];
-        
+
         for (const filename of modelFiles) {
           const exists = await checkModelExists(filename);
           if (exists) {
+            console.log('[ChatPanel] Found existing model:', filename);
             const modelPath = await getModelPath(filename);
             await startSidecar(modelPath);
+            console.log('[ChatPanel] initAI complete — sidecar started');
             break;
           }
         }
+        console.log('[ChatPanel] initAI done, no model found — showing ModelSetup');
       } catch (error) {
-        console.error('AI initialization failed:', error);
+        console.error('[ChatPanel] AI initialization failed:', error);
       }
     };
 
@@ -117,20 +119,28 @@ export function ChatPanel() {
         />
       </div>
 
-      {isDownloading && downloadProgress && (
+      {isDownloading && (
         <div className="px-3 pb-2">
-          <div className="text-xs font-medium text-[var(--color-text-primary)] mb-1">
-            Downloading model: {downloadProgress.percentage.toFixed(1)}%
-          </div>
-          <div className="w-full h-2 bg-[var(--color-bg-elevated)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--color-accent)] transition-all"
-              style={{ width: `${downloadProgress.percentage}%` }}
-            />
-          </div>
-          <div className="mt-1 text-[var(--color-text-secondary)] text-[10px]">
-            {((downloadProgress.downloaded / 1024 / 1024 / 1024).toFixed(2))}GB / {((downloadProgress.total / 1024 / 1024 / 1024).toFixed(2))}GB
-          </div>
+          {downloadProgress ? (
+            <>
+              <div className="text-xs font-medium text-[var(--color-text-primary)] mb-1">
+                Downloading model: {downloadProgress.percentage.toFixed(1)}%
+              </div>
+              <div className="w-full h-2 bg-[var(--color-bg-elevated)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--color-accent)] transition-all"
+                  style={{ width: `${downloadProgress.percentage}%` }}
+                />
+              </div>
+              <div className="mt-1 text-[var(--color-text-secondary)] text-[10px]">
+                {((downloadProgress.downloaded / 1024 / 1024 / 1024).toFixed(2))}GB / {((downloadProgress.total / 1024 / 1024 / 1024).toFixed(2))}GB
+              </div>
+            </>
+          ) : (
+            <div className="text-xs text-[var(--color-text-secondary)]">
+              Preparing download...
+            </div>
+          )}
         </div>
       )}
 
@@ -158,8 +168,13 @@ export function ChatPanel() {
               <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
             ))}
 
-            {streaming && streamBuffer && (
-              <ChatMessage role="assistant" content={streamBuffer} />
+            {streaming && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] px-3 py-2 rounded-xl text-xs leading-relaxed bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] rounded-bl-sm flex items-center gap-2">
+                  <div className="w-3 h-3 border-2 border-[var(--color-accent)] border-t-transparent rounded-full animate-spin" />
+                  {streamStatus || 'Generating...'}
+                </div>
+              </div>
             )}
 
             <div ref={messagesEndRef} />
